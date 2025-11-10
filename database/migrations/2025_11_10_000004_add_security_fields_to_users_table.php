@@ -7,15 +7,36 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('last_mfa_at')->nullable()->after('remember_token');
-            $table->timestamp('password_changed_at')->nullable()->after('last_mfa_at');
+        $lastMfaCol = config('security-policies.user_columns.last_mfa_at', 'last_mfa_at');
+        $pwdChangedCol = config('security-policies.user_columns.password_changed_at', 'password_changed_at');
+
+        Schema::table('users', function (Blueprint $table) use ($lastMfaCol, $pwdChangedCol) {
+            if (!Schema::hasColumn('users', $lastMfaCol)) {
+                $table->timestamp($lastMfaCol)->nullable()->after('remember_token');
+            }
+            if (!Schema::hasColumn('users', $pwdChangedCol)) {
+                // place after last MFA column when possible
+                $afterCol = Schema::hasColumn('users', $lastMfaCol) ? $lastMfaCol : 'remember_token';
+                $table->timestamp($pwdChangedCol)->nullable()->after($afterCol);
+            }
         });
     }
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['last_mfa_at','password_changed_at']);
+        $lastMfaCol = config('security-policies.user_columns.last_mfa_at', 'last_mfa_at');
+        $pwdChangedCol = config('security-policies.user_columns.password_changed_at', 'password_changed_at');
+
+        Schema::table('users', function (Blueprint $table) use ($lastMfaCol, $pwdChangedCol) {
+            $drops = [];
+            if (Schema::hasColumn('users', $lastMfaCol)) {
+                $drops[] = $lastMfaCol;
+            }
+            if (Schema::hasColumn('users', $pwdChangedCol)) {
+                $drops[] = $pwdChangedCol;
+            }
+            if (!empty($drops)) {
+                $table->dropColumn($drops);
+            }
         });
     }
 };
