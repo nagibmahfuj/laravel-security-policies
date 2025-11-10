@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+# Exclude development files from dist archives
+/.github export-ignore
+/tests export-ignore
+/.editorconfig export-ignore
+/.gitignore export-ignore
+/.gitattributes export-ignore
+/phpunit.xml* export-ignore
+/.phpunit.cache export-ignore
+/.idea export-ignore
+/composer.lock export-ignore
