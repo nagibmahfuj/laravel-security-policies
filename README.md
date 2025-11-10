@@ -114,6 +114,23 @@ protected $middlewareGroups = [
 
 Alternatively, use the alias `security.idle` in specific groups.
 
+### Register middleware aliases in `app/Http/Kernel.php`
+
+If aliases are not already present, add these to `$middlewareAliases`:
+
+```php
+use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\IdleTimeoutMiddleware;
+use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\RequireRecentMfaMiddleware;
+use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\PasswordExpiredMiddleware;
+
+protected $middlewareAliases = [
+    // ... existing aliases ...
+    'security.idle'             => IdleTimeoutMiddleware::class,
+    'security.mfa'              => RequireRecentMfaMiddleware::class,
+    'security.password_expired' => PasswordExpiredMiddleware::class,
+];
+```
+
 ## Use the Validation Rules
 
 Apply these rules where users set or change passwords:
