@@ -43,7 +43,8 @@ class RequireRecentMfaMiddleware
         }
 
         $graceDays = (int) config('security-policies.mfa.grace_days_after_login', 30);
-        $lastMfaAt = $user->last_mfa_at ?? null;
+        $lastMfaCol = config('security-policies.user_columns.last_mfa_at', 'last_mfa_at');
+        $lastMfaAt = $user->{$lastMfaCol} ?? null;
         $needsMfa = !$lastMfaAt || Carbon::parse($lastMfaAt)->lt(Carbon::now()->subDays($graceDays));
 
         if ($needsMfa) {

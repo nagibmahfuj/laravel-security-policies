@@ -20,7 +20,8 @@ class PasswordExpiredMiddleware
         $redirect = config('security-policies.password.redirect_on_expired_to', 'password.request');
 
         if ($expireDays > 0) {
-            $changedAt = $user->password_changed_at ?? null;
+            $changedCol = config('security-policies.user_columns.password_changed_at', 'password_changed_at');
+            $changedAt = $user->{$changedCol} ?? null;
             if (!$changedAt || Carbon::parse($changedAt)->lt(Carbon::now()->subDays($expireDays))) {
                 if ($request->route()?->getName() !== $redirect) {
                     return redirect()->route($redirect);

@@ -25,4 +25,8 @@ return [
         'history' => 5,
         'redirect_on_expired_to' => 'password.request',
     ],
+    'user_columns' => [
+        'last_mfa_at' => 'last_mfa_at',
+        'password_changed_at' => 'password_changed_at',
+    ],
 ];

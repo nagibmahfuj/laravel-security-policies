@@ -59,8 +59,9 @@ class MfaController extends Controller
             $challenge->consumed_at = Carbon::now();
             $challenge->save();
 
-            // mark user as recently MFA'd
-            $user->forceFill(['last_mfa_at' => Carbon::now()])->save();
+            // mark user as recently MFA'd using configurable column
+            $lastMfaCol = config('security-policies.user_columns.last_mfa_at', 'last_mfa_at');
+            $user->forceFill([$lastMfaCol => Carbon::now()])->save();
 
             // remember device if requested
             if ($request->boolean('remember_device')) {
