@@ -23,5 +23,6 @@ return [
         'min_uppercase' => 1,
         'expire_days' => 90,
         'history' => 5,
+        'redirect_on_expired_to' => 'password.request',
     ],
 ];

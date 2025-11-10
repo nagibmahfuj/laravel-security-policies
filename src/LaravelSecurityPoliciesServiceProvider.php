@@ -3,6 +3,13 @@
 namespace NagibMahfuj\LaravelSecurityPolicies;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Routing\Router;
+use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\IdleTimeoutMiddleware;
+use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\RequireRecentMfaMiddleware;
+use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\PasswordExpiredMiddleware;
+use NagibMahfuj\LaravelSecurityPolicies\Listeners\OnPasswordReset;
 
 class LaravelSecurityPoliciesServiceProvider extends ServiceProvider
 {
@@ -27,5 +34,15 @@ class LaravelSecurityPoliciesServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'security-policies');
+
+        // Register middleware aliases for convenience
+        $this->app->afterResolving('router', function (Router $router) {
+            $router->aliasMiddleware('security.idle', IdleTimeoutMiddleware::class);
+            $router->aliasMiddleware('security.mfa', RequireRecentMfaMiddleware::class);
+            $router->aliasMiddleware('security.password_expired', PasswordExpiredMiddleware::class);
+        });
+
+        // Listen for password reset to record history and timestamp
+        Event::listen(PasswordReset::class, [OnPasswordReset::class, 'handle']);
     }
 }
