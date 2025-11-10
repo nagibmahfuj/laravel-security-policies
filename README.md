@@ -29,7 +29,7 @@ Install via Composer once published on Packagist:
 composer require nagibmahfuj/laravel-security-policies
 ```
 
-For local development inside an app (unconventional but supported), add PSR-4 mapping in the host app `composer.json`:
+For local development inside an existing app (unconventional but supported when the package lives under `vendor/`), add a PSR-4 mapping in the host app `composer.json` so the provider can be autoloaded:
 
 ```json
 {
@@ -51,6 +51,12 @@ If auto-discovery is not active, register the service provider in `config/app.ph
 
 ```php
 NagibMahfuj\LaravelSecurityPolicies\LaravelSecurityPoliciesServiceProvider::class,
+```
+
+Clear caches if needed:
+
+```bash
+php artisan config:clear && php artisan route:clear
 ```
 
 ## Publish and Migrate
@@ -81,6 +87,8 @@ php artisan migrate
 - `password.expire_days`: integer
 - `password.history`: integer (how many recent passwords are disallowed)
 - `password.redirect_on_expired_to`: route name to redirect when expired
+- `user_columns.last_mfa_at`: the user model column that stores the last time MFA was completed (default `last_mfa_at`)
+- `user_columns.password_changed_at`: the user model column that stores when the password was last changed (default `password_changed_at`)
 
 ## Add Middlewares
 
@@ -138,13 +146,14 @@ php artisan vendor:publish --provider="NagibMahfuj\LaravelSecurityPolicies\Larav
 - `password_histories`: user_id, password_hash, timestamps
 - `mfa_challenges`: user_id, code, expires_at, consumed_at, attempts, timestamps
 - `trusted_devices`: user_id, device_fingerprint, user_agent, ip_hash, verified_at, last_seen_at, timestamps
-- Alters `users` table: `last_mfa_at`, `password_changed_at`
+- Alters `users` table (defaults): `last_mfa_at`, `password_changed_at`
+  - You may rename these columns in your own migrations and set the names via `user_columns.*` in the config.
 
 ## Events & Listeners
 
 - Listens to `Illuminate\Auth\Events\PasswordReset`
   - Stores the updated hashed password into `password_histories`
-  - Sets `password_changed_at = now()`
+  - Sets the configured `user_columns.password_changed_at = now()`
 
 If you have a custom password change flow, ensure you also update `password_changed_at` and optionally record history.
 
