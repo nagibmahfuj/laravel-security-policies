@@ -59,36 +59,82 @@ Clear caches if needed:
 php artisan config:clear && php artisan route:clear
 ```
 
-## Publish and Migrate
+## Publish config
 
-Publish config and migrations:
+Publish config:
 
 ```bash
 php artisan vendor:publish --provider="NagibMahfuj\LaravelSecurityPolicies\LaravelSecurityPoliciesServiceProvider" --tag=security-policies-config
+```
+This will create a `config/security-policies.php` file with default values. You can modify these values as per your requirements. Check below for the configuration options.
+
+## Configuration
+
+`config/security-policies.php` options (grouped):
+
+### Session
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `session.idle_timeout_minutes` | integer | `30` | Minutes of inactivity before forcing logout. |
+| `session.redirect_on_idle_to` | string (route name) | `login` | Route to redirect to after idle timeout. |
+
+### MFA
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `mfa.enabled` | bool | `true` | Enable/disable MFA enforcement. |
+| `mfa.grace_days_after_login` | integer | `30` | Require MFA again if last verification is older than X days. |
+| `mfa.otp_length` | integer | `6` | Length of the OTP code. |
+| `mfa.otp_ttl_minutes` | integer | `10` | OTP validity window in minutes. |
+| `mfa.max_attempts` | integer | `5` | Max verify attempts before requiring a new OTP. |
+| `mfa.throttle_per_minute` | integer | `5` | Intended per-minute throttle (implement rate limiting as needed). |
+| `mfa.device_remember_days` | integer | `60` | Days to trust a device when “remember this device” is selected. |
+| `mfa.remember_device_cookie` | string | `mfa_trusted_device` | Cookie name for trusted device fingerprint. |
+
+### Password
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `password.min_length` | integer | `12` | Minimum password length. |
+| `password.min_digits` | integer | `1` | Minimum digits required. |
+| `password.min_symbols` | integer | `1` | Minimum symbols required. |
+| `password.min_lowercase` | integer | `1` | Minimum lowercase letters required. |
+| `password.min_uppercase` | integer | `1` | Minimum uppercase letters required. |
+| `password.expire_days` | integer | `90` | Force password change after X days. |
+| `password.history` | integer | `5` | Disallow reuse of last X passwords. |
+| `password.redirect_on_expired_to` | string (route name) | `password.request` | Route to redirect to when password is expired. |
+
+### User Columns
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `user_columns.last_mfa_at` | string | `last_mfa_at` | User model column that stores when MFA was last completed. |
+| `user_columns.password_changed_at` | string | `password_changed_at` | User model column that stores when password was last changed. |
+
+Publish migrations:
+
+```bash
 php artisan vendor:publish --provider="NagibMahfuj\LaravelSecurityPolicies\LaravelSecurityPoliciesServiceProvider" --tag=security-policies-migrations
 php artisan migrate
 ```
 
-## Configuration
+## Register middleware aliases in `app/Http/Kernel.php`
 
-`config/security-policies.php` options:
+If aliases are not already present, add these to `$middlewareAliases`:
 
-- `session.idle_timeout_minutes`: integer
-- `session.redirect_on_idle_to`: route name
-- `mfa.enabled`: bool
-- `mfa.grace_days_after_login`: integer
-- `mfa.otp_length`: integer
-- `mfa.otp_ttl_minutes`: integer
-- `mfa.max_attempts`: integer
-- `mfa.throttle_per_minute`: integer
-- `mfa.device_remember_days`: integer
-- `mfa.remember_device_cookie`: string
-- `password.min_length`, `min_digits`, `min_symbols`, `min_lowercase`, `min_uppercase`: integers
-- `password.expire_days`: integer
-- `password.history`: integer (how many recent passwords are disallowed)
-- `password.redirect_on_expired_to`: route name to redirect when expired
-- `user_columns.last_mfa_at`: the user model column that stores the last time MFA was completed (default `last_mfa_at`)
-- `user_columns.password_changed_at`: the user model column that stores when the password was last changed (default `password_changed_at`)
+```php
+use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\IdleTimeoutMiddleware;
+use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\RequireRecentMfaMiddleware;
+use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\PasswordExpiredMiddleware;
+
+protected $middlewareAliases = [
+    // ... existing aliases ...
+    'security.idle'             => IdleTimeoutMiddleware::class,
+    'security.mfa'              => RequireRecentMfaMiddleware::class,
+    'security.password_expired' => PasswordExpiredMiddleware::class,
+];
+```
 
 ## Add Middlewares
 
@@ -113,23 +159,6 @@ protected $middlewareGroups = [
 ```
 
 Alternatively, use the alias `security.idle` in specific groups.
-
-### Register middleware aliases in `app/Http/Kernel.php`
-
-If aliases are not already present, add these to `$middlewareAliases`:
-
-```php
-use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\IdleTimeoutMiddleware;
-use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\RequireRecentMfaMiddleware;
-use NagibMahfuj\LaravelSecurityPolicies\Http\Middleware\PasswordExpiredMiddleware;
-
-protected $middlewareAliases = [
-    // ... existing aliases ...
-    'security.idle'             => IdleTimeoutMiddleware::class,
-    'security.mfa'              => RequireRecentMfaMiddleware::class,
-    'security.password_expired' => PasswordExpiredMiddleware::class,
-];
-```
 
 ## Use the Validation Rules
 
