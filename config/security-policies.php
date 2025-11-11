@@ -21,8 +21,10 @@ return [
 		'min_symbols'            => 1,
 		'min_lowercase'          => 1,
 		'min_uppercase'          => 1,
+		'allowed_symbols'        => "!@#$%^&*()_+-={}[]:;'\"<>,.?/\\|~`",
 		'expire_days'            => 90,
 		'history'                => 5,
+		'require_history'        => false,
 		'redirect_on_expired_to' => 'password.request',
 	],
 	'user_columns' => [

@@ -14,6 +14,7 @@ class StrongPassword implements ValidationRule
         $symbols = (int) config('security-policies.password.min_symbols', 1);
         $lower = (int) config('security-policies.password.min_lowercase', 1);
         $upper = (int) config('security-policies.password.min_uppercase', 1);
+        $allowedSymbols = (string) config('security-policies.password.allowed_symbols', "!@#$%^&*()_+-={}[]:;'\"<>,.?/\\|~`");
 
         $password = (string) $value;
         if (strlen($password) < $min) {
@@ -24,8 +25,16 @@ class StrongPassword implements ValidationRule
             $fail("The :attribute must contain at least {$digits} digit(s).");
             return;
         }
-        if ($symbols > 0 && preg_match_all('/[^a-zA-Z0-9]/', $password) < $symbols) {
-            $fail("The :attribute must contain at least {$symbols} symbol(s).");
+        // Symbols policy: count only allowed symbols and reject disallowed ones
+        $allowedClass = preg_quote($allowedSymbols, '/');
+        $allowedSymbolCount = preg_match_all('/['.$allowedClass.']/', $password);
+        if ($symbols > 0 && $allowedSymbolCount < $symbols) {
+            $fail("The :attribute must contain at least {$symbols} symbol(s) from the allowed set: {$allowedSymbols}.");
+            return;
+        }
+        // If any non-alphanumeric characters are present, ensure they are all in the allowed set
+        if (preg_match('/[^a-zA-Z0-9'.$allowedClass.']/', $password)) {
+            $fail("The :attribute contains symbol(s) not allowed. Allowed symbols: {$allowedSymbols}.");
             return;
         }
         if ($lower > 0 && preg_match_all('/[a-z]/', $password) < $lower) {

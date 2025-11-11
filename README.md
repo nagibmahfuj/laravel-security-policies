@@ -74,42 +74,44 @@ This will create a `config/security-policies.php` file with default values. You 
 
 ### Session
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `session.idle_timeout_minutes` | integer | `30` | Minutes of inactivity before forcing logout. |
-| `session.redirect_on_idle_to` | string (route name) | `login` | Route to redirect to after idle timeout. |
+| Key                            | Type                | Default | Description                                  |
+| ------------------------------ | ------------------- | ------- | -------------------------------------------- |
+| `session.idle_timeout_minutes` | integer             | `30`    | Minutes of inactivity before forcing logout. |
+| `session.redirect_on_idle_to`  | string (route name) | `login` | Route to redirect to after idle timeout.     |
 
 ### MFA
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `mfa.enabled` | bool | `true` | Enable/disable MFA enforcement. |
-| `mfa.grace_days_after_login` | integer | `30` | Require MFA again if last verification is older than X days. |
-| `mfa.otp_length` | integer | `6` | Length of the OTP code. |
-| `mfa.otp_ttl_minutes` | integer | `10` | OTP validity window in minutes. |
-| `mfa.max_attempts` | integer | `5` | Max verify attempts before requiring a new OTP. |
-| `mfa.throttle_per_minute` | integer | `5` | Intended per-minute throttle (implement rate limiting as needed). |
-| `mfa.device_remember_days` | integer | `60` | Days to trust a device when “remember this device” is selected. |
-| `mfa.remember_device_cookie` | string | `mfa_trusted_device` | Cookie name for trusted device fingerprint. |
+| Key                          | Type    | Default              | Description                                                       |
+| ---------------------------- | ------- | -------------------- | ----------------------------------------------------------------- |
+| `mfa.enabled`                | bool    | `true`               | Enable/disable MFA enforcement.                                   |
+| `mfa.grace_days_after_login` | integer | `30`                 | Require MFA again if last verification is older than X days.      |
+| `mfa.otp_length`             | integer | `6`                  | Length of the OTP code.                                           |
+| `mfa.otp_ttl_minutes`        | integer | `10`                 | OTP validity window in minutes.                                   |
+| `mfa.max_attempts`           | integer | `5`                  | Max verify attempts before requiring a new OTP.                   |
+| `mfa.throttle_per_minute`    | integer | `5`                  | Intended per-minute throttle (implement rate limiting as needed). |
+| `mfa.device_remember_days`   | integer | `60`                 | Days to trust a device when “remember this device” is selected.   |
+| `mfa.remember_device_cookie` | string  | `mfa_trusted_device` | Cookie name for trusted device fingerprint.                       |
 
 ### Password
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `password.min_length` | integer | `12` | Minimum password length. |
-| `password.min_digits` | integer | `1` | Minimum digits required. |
-| `password.min_symbols` | integer | `1` | Minimum symbols required. |
-| `password.min_lowercase` | integer | `1` | Minimum lowercase letters required. |
-| `password.min_uppercase` | integer | `1` | Minimum uppercase letters required. |
-| `password.expire_days` | integer | `90` | Force password change after X days. |
-| `password.history` | integer | `5` | Disallow reuse of last X passwords. |
-| `password.redirect_on_expired_to` | string (route name) | `password.request` | Route to redirect to when password is expired. |
+| Key                               | Type                | Default            | Description                                                                                       |
+| --------------------------------- | ------------------- | ------------------ | ------------------------------------------------------------------------------------------------- |
+| `password.min_length`             | integer             | `12`               | Minimum password length.                                                                          |
+| `password.min_digits`             | integer             | `1`                | Minimum digits required.                                                                          |
+| `password.min_symbols`            | integer             | `1`                | Minimum symbols required.                                                                         |
+| `password.min_lowercase`          | integer             | `1`                | Minimum lowercase letters required.                                                               |
+| `password.min_uppercase`          | integer             | `1`                | Minimum uppercase letters required.                                                               |
+| `password.allowed_symbols`        | string              | `!@#$%^&*()_+-={}[]:;'"<>,.?/\\|~` | Allowed symbol set counted by StrongPassword and used to reject disallowed characters.            |
+| `password.expire_days`            | integer             | `90`               | Force password change after X days.                                                               |
+| `password.history`                | integer             | `5`                | Disallow reuse of last X passwords.                                                               |
+| `password.require_history`        | bool                | `false`            | If true, user must have at least one password history entry; otherwise redirected to change page. |
+| `password.redirect_on_expired_to` | string (route name) | `password.request` | Route to redirect to when password is expired or when history is required but missing.            |
 
 ### User Columns
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `user_columns.last_mfa_at` | string | `last_mfa_at` | User model column that stores when MFA was last completed. |
+| Key                                | Type   | Default               | Description                                                   |
+| ---------------------------------- | ------ | --------------------- | ------------------------------------------------------------- |
+| `user_columns.last_mfa_at`         | string | `last_mfa_at`         | User model column that stores when MFA was last completed.    |
 | `user_columns.password_changed_at` | string | `password_changed_at` | User model column that stores when password was last changed. |
 
 Publish migrations:
@@ -200,6 +202,14 @@ php artisan vendor:publish --provider="NagibMahfuj\LaravelSecurityPolicies\Larav
 - Listens to `Illuminate\Auth\Events\PasswordReset`
   - Stores the updated hashed password into `password_histories`
   - Sets the configured `user_columns.password_changed_at = now()`
+
+If you are using a custom password change flow, you can trigger the event manually:
+
+```php
+use Illuminate\Auth\Events\PasswordReset;
+
+event(new PasswordReset($user));
+```
 
 If you have a custom password change flow, ensure you also update `password_changed_at` and optionally record history.
 
