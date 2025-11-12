@@ -84,6 +84,7 @@ This will create a `config/security-policies.php` file with default values. You 
 | Key                          | Type    | Default              | Description                                                       |
 | ---------------------------- | ------- | -------------------- | ----------------------------------------------------------------- |
 | `mfa.enabled`                | bool    | `true`               | Enable/disable MFA enforcement.                                   |
+| `mfa.mode`                   | string  | `trusted_only`       | `'trusted_only'` or `'grace_or_trusted'` (see below).             |
 | `mfa.grace_days_after_login` | integer | `30`                 | Require MFA again if last verification is older than X days.      |
 | `mfa.otp_length`             | integer | `6`                  | Length of the OTP code.                                           |
 | `mfa.otp_ttl_minutes`        | integer | `10`                 | OTP validity window in minutes.                                   |
@@ -91,6 +92,16 @@ This will create a `config/security-policies.php` file with default values. You 
 | `mfa.throttle_per_minute`    | integer | `5`                  | Intended per-minute throttle (implement rate limiting as needed). |
 | `mfa.device_remember_days`   | integer | `60`                 | Days to trust a device when “remember this device” is selected.   |
 | `mfa.remember_device_cookie` | string  | `mfa_trusted_device` | Cookie name for trusted device fingerprint.                       |
+
+#### MFA Modes
+
+- **trusted_only** (default)
+  - Bypass MFA only if the request contains a trusted device cookie that matches a verified TrustedDevice record within `mfa.device_remember_days`.
+  - If no trusted match exists, user is redirected to MFA verification on every login.
+- **grace_or_trusted**
+  - First, the middleware checks for a trusted device as above; if found, bypass MFA.
+  - If not trusted, it allows access if the user's `user_columns.last_mfa_at` is within `mfa.grace_days_after_login`.
+  - Otherwise, redirects to MFA verification.
 
 ### Password
 
