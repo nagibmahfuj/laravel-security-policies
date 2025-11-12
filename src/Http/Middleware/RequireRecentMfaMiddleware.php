@@ -34,6 +34,9 @@ class RequireRecentMfaMiddleware
 
 		// For non-MFA routes: enforce MFA if needed
 		if ($needsMfa) {
+			if ($request->header('X-Inertia')) {
+				return response('', 409)->header('X-Inertia-Location', route('security.mfa.verify'));
+			}
 			return redirect()->route('security.mfa.verify');
 		}
 

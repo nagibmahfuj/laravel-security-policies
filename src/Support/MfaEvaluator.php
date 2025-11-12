@@ -48,6 +48,10 @@ class MfaEvaluator
 	public static function redirectWhenNotNeeded(Request $request)
 	{
 		$target = (string) config('security-policies.mfa.redirect_when_not_needed', '/');
+		// If the request is an Inertia visit, respond with 409 + X-Inertia-Location
+		if ($request->header('X-Inertia')) {
+			return response('', 409)->header('X-Inertia-Location', url($target));
+		}
 		return redirect()->intended($target);
 	}
 }
