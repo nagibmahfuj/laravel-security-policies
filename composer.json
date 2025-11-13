@@ -1,24 +1,24 @@
 {
-  "name": "nagibmahfuj/laravel-security-policies",
-  "description": "Laravel Security Policies: session, password, MFA",
-  "type": "library",
-  "license": "MIT",
-  "require": {
-    "php": "^8.2",
-    "illuminate/support": "^10.0|^11.0",
-    "illuminate/auth": "^10.0|^11.0",
-    "illuminate/notifications": "^10.0|^11.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "NagibMahfuj\\\\LaravelSecurityPolicies\\\\": "src/"
-    }
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "NagibMahfuj\\\\LaravelSecurityPolicies\\\\LaravelSecurityPoliciesServiceProvider"
-      ]
-    }
-  }
+	"name": "nagibmahfuj/laravel-security-policies",
+	"description": "Laravel Security Policies: session, password, MFA",
+	"type": "library",
+	"license": "MIT",
+	"require": {
+		"php": "^8.1",
+		"illuminate/support": "^9|^10|^11|^12",
+		"illuminate/auth": "^9|^10|^11|^12",
+		"illuminate/notifications": "^9|^10|^11|^12"
+	},
+	"autoload": {
+		"psr-4": {
+			"NagibMahfuj\\\\LaravelSecurityPolicies\\\\": "src/"
+		}
+	},
+	"extra": {
+		"laravel": {
+			"providers": [
+				"NagibMahfuj\\\\LaravelSecurityPolicies\\\\LaravelSecurityPoliciesServiceProvider"
+			]
+		}
+	}
 }
