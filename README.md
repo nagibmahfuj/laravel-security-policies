@@ -6,7 +6,7 @@ A Laravel package that enforces organization-grade security policies:
 - Password policy (complexity, expiry, history reuse prevention)
 - Email-based multi-factor authentication (MFA) with trusted devices
 
-Supports Laravel 9/10/10/11/12 and PHP 8.1+.
+Supports Laravel 8/9/10/10/11/12 and PHP 8.0+.
 
 ## Features
 
