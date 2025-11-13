@@ -28,13 +28,13 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"NagibMahfuj\\\\LaravelSecurityPolicies\\\\": "src/"
+			"NagibMahfuj\\LaravelSecurityPolicies\\": "src/"
 		}
 	},
 	"extra": {
 		"laravel": {
 			"providers": [
-				"NagibMahfuj\\\\LaravelSecurityPolicies\\\\LaravelSecurityPoliciesServiceProvider"
+				"NagibMahfuj\\LaravelSecurityPolicies\\LaravelSecurityPoliciesServiceProvider"
 			]
 		}
 	},
