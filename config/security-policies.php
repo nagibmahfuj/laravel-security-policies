@@ -4,6 +4,7 @@ return [
 	'session' => [
 		'idle_timeout_minutes' => 30,
 		'redirect_on_idle_to'  => 'login',
+		'last_activity_store'  => 'session',
 	],
 	'mfa' => [
 		'enabled'                  => true,
@@ -32,5 +33,6 @@ return [
 	'user_columns' => [
 		'last_mfa_at'         => 'last_mfa_at',
 		'password_changed_at' => 'password_changed_at',
+		'last_activity_at'    => 'last_active_at',
 	],
 ];

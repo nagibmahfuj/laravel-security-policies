@@ -74,10 +74,11 @@ This will create a `config/security-policies.php` file with default values. You 
 
 ### Session
 
-| Key                            | Type                | Default | Description                                  |
-| ------------------------------ | ------------------- | ------- | -------------------------------------------- |
-| `session.idle_timeout_minutes` | integer             | `30`    | Minutes of inactivity before forcing logout. |
-| `session.redirect_on_idle_to`  | string (route name) | `login` | Route to redirect to after idle timeout.     |
+| Key                            | Type                | Default   | Description                                                     |
+| ------------------------------ | ------------------- | --------- | --------------------------------------------------------------- |
+| `session.idle_timeout_minutes` | integer             | `30`      | Minutes of inactivity before forcing logout.                    |
+| `session.redirect_on_idle_to`  | string (route name) | `login`   | Route to redirect to after idle timeout.                        |
+| `session.last_activity_store`  | string              | `session` | Where to store last activity timestamp: 'session' or 'database' |
 
 ### MFA
 
@@ -105,25 +106,26 @@ This will create a `config/security-policies.php` file with default values. You 
 
 ### Password
 
-| Key                               | Type                | Default            | Description                                                                                       |
-| --------------------------------- | ------------------- | ------------------ | ------------------------------------------------------------------------------------------------- |
-| `password.min_length`             | integer             | `12`               | Minimum password length.                                                                          |
-| `password.min_digits`             | integer             | `1`                | Minimum digits required.                                                                          |
-| `password.min_symbols`            | integer             | `1`                | Minimum symbols required.                                                                         |
-| `password.min_lowercase`          | integer             | `1`                | Minimum lowercase letters required.                                                               |
-| `password.min_uppercase`          | integer             | `1`                | Minimum uppercase letters required.                                                               |
+| Key                               | Type                | Default                            | Description                                                                                       |
+| --------------------------------- | ------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `password.min_length`             | integer             | `12`                               | Minimum password length.                                                                          |
+| `password.min_digits`             | integer             | `1`                                | Minimum digits required.                                                                          |
+| `password.min_symbols`            | integer             | `1`                                | Minimum symbols required.                                                                         |
+| `password.min_lowercase`          | integer             | `1`                                | Minimum lowercase letters required.                                                               |
+| `password.min_uppercase`          | integer             | `1`                                | Minimum uppercase letters required.                                                               |
 | `password.allowed_symbols`        | string              | `!@#$%^&*()_+-={}[]:;'"<>,.?/\\|~` | Allowed symbol set counted by StrongPassword and used to reject disallowed characters.            |
-| `password.expire_days`            | integer             | `90`               | Force password change after X days.                                                               |
-| `password.history`                | integer             | `5`                | Disallow reuse of last X passwords.                                                               |
-| `password.require_history`        | bool                | `false`            | If true, user must have at least one password history entry; otherwise redirected to change page. |
-| `password.redirect_on_expired_to` | string (route name) | `password.request` | Route to redirect to when password is expired or when history is required but missing.            |
+| `password.expire_days`            | integer             | `90`                               | Force password change after X days.                                                               |
+| `password.history`                | integer             | `5`                                | Disallow reuse of last X passwords.                                                               |
+| `password.require_history`        | bool                | `false`                            | If true, user must have at least one password history entry; otherwise redirected to change page. |
+| `password.redirect_on_expired_to` | string (route name) | `password.request`                 | Route to redirect to when password is expired or when history is required but missing.            |
 
 ### User Columns
 
-| Key                                | Type   | Default               | Description                                                   |
-| ---------------------------------- | ------ | --------------------- | ------------------------------------------------------------- |
-| `user_columns.last_mfa_at`         | string | `last_mfa_at`         | User model column that stores when MFA was last completed.    |
-| `user_columns.password_changed_at` | string | `password_changed_at` | User model column that stores when password was last changed. |
+| Key                                | Type   | Default               | Description                                                                            |
+| ---------------------------------- | ------ | --------------------- | -------------------------------------------------------------------------------------- |
+| `user_columns.last_mfa_at`         | string | `last_mfa_at`         | User model column that stores when MFA was last completed.                             |
+| `user_columns.password_changed_at` | string | `password_changed_at` | User model column that stores when password was last changed.                          |
+| `user_columns.last_activity_at`    | string | `last_active_at`      | User model column that stores the last activity timestamp when using database storage. |
 
 Publish migrations:
 
@@ -205,8 +207,24 @@ php artisan vendor:publish --provider="NagibMahfuj\LaravelSecurityPolicies\Larav
 - `password_histories`: user_id, password_hash, timestamps
 - `mfa_challenges`: user_id, code, expires_at, consumed_at, attempts, timestamps
 - `trusted_devices`: user_id, device_fingerprint, user_agent, ip_hash, verified_at, last_seen_at, timestamps
-- Alters `users` table (defaults): `last_mfa_at`, `password_changed_at`
+- Alters `users` table (defaults): `last_mfa_at`, `password_changed_at`, `last_active_at`
   - You may rename these columns in your own migrations and set the names via `user_columns.*` in the config.
+
+### Enabling Database Storage for Last Activity
+
+To use database storage for last activity tracking:
+
+1. Ensure your `users` table has a timestamp column for last activity (default: `last_active_at`). The published migration will add this if needed.
+2. Set the following in `config/security-policies.php`:
+   ```php
+   'session' => [
+       'last_activity_store' => 'database', // or 'session' for the default behavior
+   ],
+   'user_columns' => [
+       'last_activity_at' => 'last_active_at', // customize column name if needed
+   ],
+   ```
+3. The middleware will now track last activity in the database instead of the session.
 
 ## Events & Listeners
 
