@@ -3,6 +3,23 @@
 	"description": "Laravel Security Policies: session, password, MFA",
 	"type": "library",
 	"license": "MIT",
+	"keywords": [
+		"php",
+		"laravel",
+		"laravel-framework",
+		"laravel-package",
+		"multi-factor-authentication",
+		"password-policy",
+		"laravel-security",
+		"session-policy",
+		"mfa-policy"
+	],
+	"authors": [
+		{
+			"name": "Nagib Mahfuj",
+			"email": "nagibmahfuj@gmail.com"
+		}
+	],
 	"require": {
 		"php": "^8.0",
 		"illuminate/support": "^8|^9|^10|^11|^12",
@@ -20,5 +37,7 @@
 				"NagibMahfuj\\\\LaravelSecurityPolicies\\\\LaravelSecurityPoliciesServiceProvider"
 			]
 		}
-	}
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true
 }
