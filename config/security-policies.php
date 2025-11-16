@@ -17,6 +17,8 @@ return [
 		'throttle_per_minute'      => 5,
 		'device_remember_days'     => 60,
 		'remember_device_cookie'   => 'mfa_trusted_device',
+		'device_session_control'   => 'multiple', // "single" or "multiple"
+		'single_device_action'     => 'logout_previous', // "logout_previous" or "prevent_new"
 	],
 	'password' => [
 		'min_length'             => 12,

@@ -82,17 +82,19 @@ This will create a `config/security-policies.php` file with default values. You 
 
 ### MFA
 
-| Key                          | Type    | Default              | Description                                                       |
-| ---------------------------- | ------- | -------------------- | ----------------------------------------------------------------- |
-| `mfa.enabled`                | bool    | `true`               | Enable/disable MFA enforcement.                                   |
-| `mfa.mode`                   | string  | `trusted_only`       | `'trusted_only'` or `'grace_or_trusted'` (see below).             |
-| `mfa.grace_days_after_login` | integer | `30`                 | Require MFA again if last verification is older than X days.      |
-| `mfa.otp_length`             | integer | `6`                  | Length of the OTP code.                                           |
-| `mfa.otp_ttl_minutes`        | integer | `10`                 | OTP validity window in minutes.                                   |
-| `mfa.max_attempts`           | integer | `5`                  | Max verify attempts before requiring a new OTP.                   |
-| `mfa.throttle_per_minute`    | integer | `5`                  | Intended per-minute throttle (implement rate limiting as needed). |
-| `mfa.device_remember_days`   | integer | `60`                 | Days to trust a device when “remember this device” is selected.   |
-| `mfa.remember_device_cookie` | string  | `mfa_trusted_device` | Cookie name for trusted device fingerprint.                       |
+| Key                          | Type    | Default              | Description                                                                                    |
+| ---------------------------- | ------- | -------------------- | ---------------------------------------------------------------------------------------------- |
+| `mfa.enabled`                | bool    | `true`               | Enable/disable MFA enforcement.                                                                |
+| `mfa.mode`                   | string  | `trusted_only`       | `'trusted_only'` or `'grace_or_trusted'` (see below).                                          |
+| `mfa.grace_days_after_login` | integer | `30`                 | Require MFA again if last verification is older than X days.                                   |
+| `mfa.otp_length`             | integer | `6`                  | Length of the OTP code.                                                                        |
+| `mfa.otp_ttl_minutes`        | integer | `10`                 | OTP validity window in minutes.                                                                |
+| `mfa.max_attempts`           | integer | `5`                  | Max verify attempts before requiring a new OTP.                                                |
+| `mfa.throttle_per_minute`    | integer | `5`                  | Intended per-minute throttle (implement rate limiting as needed).                              |
+| `mfa.device_remember_days`   | integer | `60`                 | Days to trust a device when “remember this device” is selected.                                |
+| `mfa.remember_device_cookie` | string  | `mfa_trusted_device` | Cookie name for trusted device fingerprint.                                                    |
+| `mfa.device_session_control` | string  | `multiple`           | Control device access: `'single'` or `'multiple'`.                                             |
+| `mfa.single_device_action`   | string  | `logout_previous`    | Action when single device mode and new login detected: `'logout_previous'` or `'prevent_new'`. |
 
 #### MFA Modes
 
@@ -103,6 +105,23 @@ This will create a `config/security-policies.php` file with default values. You 
   - First, the middleware checks for a trusted device as above; if found, bypass MFA.
   - If not trusted, it allows access if the user's `user_columns.last_mfa_at` is within `mfa.grace_days_after_login`.
   - Otherwise, redirects to MFA verification.
+
+#### Device Session Control
+
+When `mfa.device_session_control` is set to `'single'`, users can only be logged in on one device at a time. This feature leverages the existing `trusted_devices` table to track active sessions.
+
+- **single_device_action: logout_previous** (default)
+  - When a user logs in from a new device, all previously trusted devices are automatically invalidated by setting their `verified_at` timestamp to null.
+  - The new device becomes the only active trusted device.
+
+- **single_device_action: prevent_new**
+  - When a user tries to log in from a new device while already logged in elsewhere, the new login attempt is blocked.
+  - The user is logged out and redirected to the login page with an error message explaining that single device access is enabled.
+
+- **device_session_control: multiple** (default)
+  - No device restrictions - users can be logged in on multiple devices simultaneously.
+
+Device fingerprinting uses IP address, User-Agent, Accept-Language, and Accept headers to uniquely identify devices. The system automatically tracks device activity and updates last seen timestamps.
 
 ### Password
 
@@ -217,7 +236,7 @@ php artisan vendor:publish --provider="NagibMahfuj\LaravelSecurityPolicies\Larav
 
 - `password_histories`: user_id, password_hash, timestamps
 - `mfa_challenges`: user_id, code, expires_at, consumed_at, attempts, timestamps
-- `trusted_devices`: user_id, device_fingerprint, user_agent, ip_hash, verified_at, last_seen_at, timestamps
+- `trusted_devices`: user_id, device_fingerprint, user_agent, ip_address, verified_at, last_seen_at, timestamps
 - Alters `users` table (defaults): `last_mfa_at`, `password_changed_at`, `last_active_at`
   - You may rename these columns in your own migrations and set the names via `user_columns.*` in the config.
 

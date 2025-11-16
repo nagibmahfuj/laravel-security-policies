@@ -22,6 +22,15 @@ class RequireRecentMfaMiddleware
 		$user     = Auth::user();
 		$needsMfa = MfaEvaluator::needsMfa($request, $user);
 
+		// Enforce device session control if enabled
+		$deviceControlResponse = MfaEvaluator::enforceDeviceSessionControl($request, $user);
+		if ($deviceControlResponse) {
+			return $deviceControlResponse;
+		}
+
+		// Track device session activity
+		MfaEvaluator::trackDeviceSession($request, $user);
+
 		// If the request is for MFA routes by name
 		$isMfaRoute = $request->routeIs('security.mfa.verify') || $request->routeIs('security.mfa.verify.post') || $request->routeIs('security.mfa.resend');
 		if ($isMfaRoute) {

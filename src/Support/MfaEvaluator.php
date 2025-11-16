@@ -4,6 +4,7 @@ namespace NagibMahfuj\LaravelSecurityPolicies\Support;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use NagibMahfuj\LaravelSecurityPolicies\Models\TrustedDevice;
 
@@ -53,5 +54,86 @@ class MfaEvaluator
 			return response('', 409)->header('X-Inertia-Location', url($target));
 		}
 		return redirect()->intended($target);
+	}
+
+	public static function enforceDeviceSessionControl(Request $request, $user)
+	{
+		$deviceControl = config('security-policies.mfa.device_session_control', 'multiple');
+
+		if ($deviceControl !== 'single' || !Auth::check()) {
+			return null;
+		}
+
+		$action             = config('security-policies.mfa.single_device_action', 'logout_previous');
+		$currentFingerprint = static::generateDeviceFingerprint($request);
+
+		// Get all trusted devices for this user
+		$trustedDevices = TrustedDevice::where('user_id', $user->getAuthIdentifier())
+			->whereNotNull('verified_at')
+			->where('verified_at', '>=', Carbon::now()->subDays(config('security-policies.mfa.device_remember_days', 60)))
+			->get();
+
+		// Check if current device is already trusted
+		$currentDeviceTrusted = $trustedDevices->where('device_fingerprint', $currentFingerprint)->first();
+
+		// dump($currentFingerprint);
+		// dump($currentDeviceTrusted);
+		// dump(!$currentDeviceTrusted && $trustedDevices->isNotEmpty());
+
+		if (!$currentDeviceTrusted && $trustedDevices->isNotEmpty()) {
+			if ($action === 'prevent_new') {
+				Auth::logout();
+				$request->session()->invalidate();
+				$request->session()->regenerateToken();
+
+				return redirect()->route('login')
+					->with('error', 'You are already logged in on another device. Single device access is enabled.');
+			} else {
+				// Logout previous devices
+				// dump('Logout previous devices');
+				// dd($trustedDevices);
+				foreach ($trustedDevices as $device) {
+					$device->update(['verified_at' => null]); // Invalidate previous devices
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public static function generateDeviceFingerprint(Request $request): string
+	{
+		$data = [
+			(string) $request->user()->getAuthIdentifier(),
+			(string) $request->userAgent(),
+			(string) $request->ip(),
+			(string) config('app.key'),
+		];
+
+		return hash('sha256', implode('|', $data));
+	}
+
+	public static function trackDeviceSession(Request $request, $user)
+	{
+		$deviceControl = config('security-policies.mfa.device_session_control', 'multiple');
+
+		if ($deviceControl !== 'single' || !Auth::check()) {
+			return;
+		}
+
+		$fingerprint = static::generateDeviceFingerprint($request);
+
+		// Update last seen for current device
+		$trustedDevice = TrustedDevice::where('user_id', $user->getAuthIdentifier())
+			->where('device_fingerprint', $fingerprint)
+			->first();
+
+		if ($trustedDevice) {
+			$trustedDevice->update([
+				'last_seen_at' => Carbon::now(),
+				'user_agent'   => $request->userAgent(),
+				'ip_address'   => $request->ip(),
+			]);
+		}
 	}
 }

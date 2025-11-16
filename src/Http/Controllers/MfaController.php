@@ -74,7 +74,7 @@ class MfaController extends Controller
 			if ($request->boolean('remember_device')) {
 				$cookieName  = config('security-policies.mfa.remember_device_cookie', 'mfa_trusted_device');
 				$days        = (int) config('security-policies.mfa.device_remember_days', 60);
-				$fingerprint = $this->makeDeviceFingerprint($request, $user->getAuthIdentifier());
+				$fingerprint = MfaEvaluator::generateDeviceFingerprint($request);
 				TrustedDevice::updateOrCreate(
 					[
 						'user_id'            => $user->getAuthIdentifier(),
@@ -92,6 +92,9 @@ class MfaController extends Controller
 
 			// mark current session as MFA-passed to avoid immediate re-prompt
 			$request->session()->put('mfa_passed', true);
+
+			// Track device session after successful MFA
+			MfaEvaluator::trackDeviceSession($request, $user);
 
 			return redirect()->intended('/');
 		}
@@ -142,13 +145,5 @@ class MfaController extends Controller
 
 		Notification::send($user, new EmailOtpNotification($code));
 		return $challenge;
-	}
-
-	protected function makeDeviceFingerprint(Request $request, $userId): string
-	{
-		$ua  = (string) $request->userAgent();
-		$ip  = (string) $request->ip();
-		$key = config('app.key');
-		return hash('sha256', $userId . '|' . $ua . '|' . $ip . '|' . $key);
 	}
 }
