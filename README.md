@@ -177,7 +177,7 @@ Alternatively, use the alias `security.idle` in specific groups.
 
 ## Use the Validation Rules
 
-Apply these rules where users set or change passwords:
+In Laravel 9+, Apply these rules where users set or change passwords:
 
 ```php
 use NagibMahfuj\LaravelSecurityPolicies\Rules\StrongPassword;
@@ -185,6 +185,17 @@ use NagibMahfuj\LaravelSecurityPolicies\Rules\NotInRecentPasswords;
 
 $request->validate([
     'password' => ['required', 'confirmed', new StrongPassword, new NotInRecentPasswords],
+]);
+```
+
+For Laravel 8 and below, Apply these rules where users set or change passwords:
+
+```php
+use NagibMahfuj\LaravelSecurityPolicies\Rules\StrongPasswordRule;
+use NagibMahfuj\LaravelSecurityPolicies\Rules\NotInRecentPasswordsRule;
+
+$request->validate([
+    'password' => ['required', 'confirmed', new StrongPasswordRule, new NotInRecentPasswordsRule],
 ]);
 ```
 
@@ -232,16 +243,20 @@ To use database storage for last activity tracking:
   - Stores the updated hashed password into `password_histories`
   - Sets the configured `user_columns.password_changed_at = now()`
 
-If you are using a custom password change flow, you can trigger the event manually:
+If you are using a custom password change flow, you can trigger the event manually after updating the password:
 
 ```php
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Hash;
 
+// Update password
+$user->update([
+    'password' => Hash::make($request->password),
+]);
+
+// Trigger event
 event(new PasswordReset($user));
 ```
-
-If you have a custom password change flow, ensure you also update `password_changed_at` and optionally record history.
-
 ## Security Considerations
 
 - Ensure mail is properly configured for OTP delivery.
