@@ -82,7 +82,7 @@ class MfaController extends Controller
 					],
 					[
 						'user_agent'   => (string) $request->userAgent(),
-						'ip_address'   => (string) $request->ip(),
+						'ip_address'   => (string) MfaEvaluator::getClientIpAddress(),
 						'verified_at'  => Carbon::now()->addDays($days),
 						'last_seen_at' => Carbon::now(),
 					]
