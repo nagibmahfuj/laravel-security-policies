@@ -6,7 +6,7 @@ A Laravel package that enforces organization-grade security policies:
 - Password policy (complexity, expiry, history reuse prevention)
 - Email-based multi-factor authentication (MFA) with trusted devices
 
-Supports Laravel 8/9/10/10/11/12 and PHP 8.0+.
+Supports Laravel 8/9/10/11/12 and PHP 8.0+.
 
 ## Features
 
@@ -82,19 +82,20 @@ This will create a `config/security-policies.php` file with default values. You 
 
 ### MFA
 
-| Key                          | Type    | Default              | Description                                                                                    |
-| ---------------------------- | ------- | -------------------- | ---------------------------------------------------------------------------------------------- |
-| `mfa.enabled`                | bool    | `true`               | Enable/disable MFA enforcement.                                                                |
-| `mfa.mode`                   | string  | `trusted_only`       | `'trusted_only'` or `'grace_or_trusted'` (see below).                                          |
-| `mfa.grace_days_after_login` | integer | `30`                 | Require MFA again if last verification is older than X days.                                   |
-| `mfa.otp_length`             | integer | `6`                  | Length of the OTP code.                                                                        |
-| `mfa.otp_ttl_minutes`        | integer | `10`                 | OTP validity window in minutes.                                                                |
-| `mfa.max_attempts`           | integer | `5`                  | Max verify attempts before requiring a new OTP.                                                |
-| `mfa.throttle_per_minute`    | integer | `5`                  | Intended per-minute throttle (implement rate limiting as needed).                              |
-| `mfa.device_remember_days`   | integer | `60`                 | Days to trust a device when “remember this device” is selected.                                |
-| `mfa.remember_device_cookie` | string  | `mfa_trusted_device` | Cookie name for trusted device fingerprint.                                                    |
-| `mfa.device_session_control` | string  | `multiple`           | Control device access: `'single'` or `'multiple'`.                                             |
-| `mfa.single_device_action`   | string  | `logout_previous`    | Action when single device mode and new login detected: `'logout_previous'` or `'prevent_new'`. |
+| Key                            | Type    | Default              | Description                                                                                    |
+| ------------------------------ | ------- | -------------------- | ---------------------------------------------------------------------------------------------- |
+| `mfa.enabled`                  | bool    | `true`               | Enable/disable MFA enforcement.                                                                |
+| `mfa.mode`                     | string  | `trusted_only`       | `'trusted_only'` or `'grace_or_trusted'` (see below).                                          |
+| `mfa.redirect_when_not_needed` | string  | `'/'`                | URL or route name to redirect to when MFA is not required (user already verified).             |
+| `mfa.grace_days_after_login`   | integer | `30`                 | Require MFA again if last verification is older than X days.                                   |
+| `mfa.otp_length`               | integer | `6`                  | Length of the OTP code.                                                                        |
+| `mfa.otp_ttl_minutes`          | integer | `10`                 | OTP validity window in minutes.                                                                |
+| `mfa.max_attempts`             | integer | `5`                  | Max verify attempts before requiring a new OTP.                                                |
+| `mfa.throttle_per_minute`      | integer | `5`                  | Intended per-minute throttle (implement rate limiting as needed).                              |
+| `mfa.device_remember_days`     | integer | `60`                 | Days to trust a device when “remember this device” is selected.                                |
+| `mfa.remember_device_cookie`   | string  | `mfa_trusted_device` | Cookie name for trusted device fingerprint.                                                    |
+| `mfa.device_session_control`   | string  | `multiple`           | Control device access: `'single'` or `'multiple'`.                                             |
+| `mfa.single_device_action`     | string  | `logout_previous`    | Action when single device mode and new login detected: `'logout_previous'` or `'prevent_new'`. |
 
 #### MFA Modes
 
