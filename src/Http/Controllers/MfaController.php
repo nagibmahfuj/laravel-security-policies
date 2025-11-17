@@ -96,7 +96,8 @@ class MfaController extends Controller
 			// Track device session after successful MFA
 			MfaEvaluator::trackDeviceSession($request, $user);
 
-			return redirect()->intended('/');
+			// return redirect()->intended('/');
+			return MfaEvaluator::redirectWhenNotNeeded($request);
 		}
 
 		return back()->withErrors(['code' => 'Invalid code.']);

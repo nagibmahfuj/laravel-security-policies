@@ -76,22 +76,16 @@ class MfaEvaluator
 		// Check if current device is already trusted
 		$currentDeviceTrusted = $trustedDevices->where('device_fingerprint', $currentFingerprint)->first();
 
-		// dump($currentFingerprint);
-		// dump($currentDeviceTrusted);
-		// dump(!$currentDeviceTrusted && $trustedDevices->isNotEmpty());
-
 		if (!$currentDeviceTrusted && $trustedDevices->isNotEmpty()) {
 			if ($action === 'prevent_new') {
 				Auth::logout();
 				$request->session()->invalidate();
 				$request->session()->regenerateToken();
 
-				return redirect()->route('login')
+				return redirect()->route(config('security-policies.session.redirect_on_idle_to', 'login'))
 					->with('error', 'You are already logged in on another device. Single device access is enabled.');
 			} else {
 				// Logout previous devices
-				// dump('Logout previous devices');
-				// dd($trustedDevices);
 				foreach ($trustedDevices as $device) {
 					$device->update(['verified_at' => null]); // Invalidate previous devices
 				}
