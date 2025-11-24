@@ -23,22 +23,10 @@ Supports Laravel 8/9/10/11/12 and PHP 8.0+.
 
 ## Installation
 
-Install via Composer once published on Packagist:
+Install via Composer:
 
 ```bash
 composer require nagibmahfuj/laravel-security-policies
-```
-
-For local development inside an existing app (unconventional but supported when the package lives under `vendor/`), add a PSR-4 mapping in the host app `composer.json` so the provider can be autoloaded:
-
-```json
-{
-  "autoload": {
-    "psr-4": {
-      "NagibMahfuj\\\\LaravelSecurityPolicies\\\\": "vendor/nagibmahfuj/laravel-security-policies/src/"
-    }
-  }
-}
 ```
 
 Then dump autoload:
